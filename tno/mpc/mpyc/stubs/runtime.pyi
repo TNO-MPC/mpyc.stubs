@@ -3,6 +3,7 @@ from types import TracebackType
 from typing import (
     Any,
     Awaitable,
+    Callable,
     Coroutine,
     Dict,
     Iterable,
@@ -16,28 +17,29 @@ from typing import (
     overload,
 )
 
+import mpyc.sectypes as sectypes
 from mpyc.sectypes import SecureObject
 
 TypePlaceholder = TypeVar("TypePlaceholder")
 SecureObjectType = TypeVar("SecureObjectType", bound=SecureObject)
 
 class Runtime:
-    def __init__(self, pid: int, parties: Iterable[int], options: Namespace) -> None:
+    def __init__(self, pid: int, parties: Iterable[Party], options: Namespace) -> None:
         self.pid = pid
         self.parties = tuple(parties)
         self.options = options
-        self.threshold: int = options.threshold
+        self.threshold: int
     coroutine: staticmethod
     returnType: staticmethod
-    SecFld: staticmethod
-    SecInt: staticmethod
-    SecFxp: staticmethod
+    SecFld: staticmethod = staticmethod(sectypes.SecFld)
+    SecInt: staticmethod = staticmethod(sectypes.SecInt)
+    SecFxp: staticmethod = staticmethod(sectypes.SecFxp)
 
     # Some of the functions below are actually async functions. However, MPyC
     # does not return Awaitables from these functions but rather SecureObjects
     # with an Awaitable `value` field. This causes issues with type hinting.
     # It seems that this workaround allows MyPy to work as intended.
-    async def barrier(self, name: Optional[str] = None) -> None: ...
+    async def barrier(self, name: Optional[str] = ...) -> None: ...
     async def __aenter__(self) -> Awaitable[Runtime]: ...
     async def __aexit__(
         self,
@@ -62,7 +64,7 @@ class Runtime:
     def input(
         self,
         x: SecureObjectType,
-        senders: Optional[Sequence[int]] = None,
+        senders: Optional[Sequence[int]] = ...,
     ) -> List[SecureObjectType]: ...
     @overload
     def input(
@@ -74,11 +76,29 @@ class Runtime:
     def input(
         self,
         x: Sequence[SecureObjectType],
-        senders: Optional[Sequence[int]] = None,
+        senders: Optional[Sequence[int]] = ...,
     ) -> List[List[SecureObjectType]]: ...
     def _randoms(
         self, sftype: Type[SecureObjectType], n: int, bound: Optional[int] = ...
     ) -> List[SecureObjectType]: ...
+    def random_bits(
+        self, sftype: Type[SecureObjectType], n: int, signed: bool = ...
+    ) -> List[int]: ...
+    @overload
+    def matrix_prod(
+        self,
+        A: Sequence[Sequence[SecureObjectType]],
+        B: Sequence[Sequence[float]],
+        tr: bool = ...,
+    ) -> List[List[SecureObjectType]]: ...
+    @overload
+    def matrix_prod(
+        self,
+        A: Sequence[Sequence[float]],
+        B: Sequence[Sequence[SecureObjectType]],
+        tr: bool = ...,
+    ) -> List[List[SecureObjectType]]: ...
+    @overload
     def matrix_prod(
         self,
         A: Sequence[Sequence[SecureObjectType]],
@@ -93,7 +113,7 @@ class Runtime:
         receivers: Optional[Union[Sequence[int], int]] = ...,
         threshold: Optional[int] = ...,
         raw: bool = ...,
-    ) -> Union[int, float]: ...
+    ) -> float: ...
     @overload
     async def output(
         self,
@@ -101,7 +121,17 @@ class Runtime:
         receivers: Optional[Union[Sequence[int], int]] = ...,
         threshold: Optional[int] = ...,
         raw: bool = ...,
-    ) -> List[Union[int, float]]: ...
+    ) -> List[float]: ...
+    @overload
+    async def _reshare(
+        self,
+        x: SecureObjectType,
+    ) -> SecureObjectType: ...
+    @overload
+    async def _reshare(
+        self,
+        x: List[SecureObjectType],
+    ) -> List[SecureObjectType]: ...
     @overload
     def convert(
         self, x: Sequence[SecureObjectType], ttype: Type[TypePlaceholder]
@@ -110,14 +140,42 @@ class Runtime:
     def convert(
         self, x: SecureObjectType, ttype: Type[TypePlaceholder]
     ) -> TypePlaceholder: ...
+    @overload
+    def trunc(
+        self, x: List[SecureObjectType], f: Optional[int] = ..., l: Optional[int] = ...
+    ) -> List[SecureObjectType]: ...
+    @overload
+    def trunc(
+        self, x: SecureObjectType, f: Optional[int] = ..., l: Optional[int] = ...
+    ) -> SecureObjectType: ...
+    def is_zero_public(self, a: SecureObjectType) -> bool: ...
+    def sub(
+        self, a: SecureObjectType, b: Union[SecureObjectType, float]
+    ) -> SecureObjectType: ...
     def gather(self, *obj: object) -> Any: ...
+    def lt(
+        self, a: SecureObjectType, b: Union[SecureObjectType, float]
+    ) -> SecureObjectType: ...
+    def eq(
+        self, a: SecureObjectType, b: Union[SecureObjectType, float]
+    ) -> SecureObjectType: ...
+    def ge(
+        self, a: SecureObjectType, b: Union[SecureObjectType, float]
+    ) -> SecureObjectType: ...
+    def abs(self, a: SecureObjectType) -> SecureObjectType: ...
+    def sgn(
+        self, a: SecureObjectType, l: int = ..., LT: bool = ..., EQ: bool = ...
+    ) -> SecureObjectType: ...
+    def max(
+        self, *x: Sequence[SecureObjectType], key: Optional[Callable[[Any], Any]] = ...
+    ) -> SecureObjectType: ...
     def div(
         self,
-        a: Union[SecureObjectType, int, float],
-        b: Union[SecureObjectType, int, float],
+        a: Union[SecureObjectType, float],
+        b: Union[SecureObjectType, float],
     ) -> SecureObjectType: ...
     def sum(
-        self, x: Iterable[SecureObjectType], start: int = 0
+        self, x: Iterable[SecureObjectType], start: int = ...
     ) -> SecureObjectType: ...
     def in_prod(
         self, x: Sequence[SecureObjectType], y: Sequence[SecureObjectType]
@@ -133,7 +191,7 @@ class Runtime:
     ) -> List[SecureObjectType]: ...
     def scalar_mul(
         self,
-        a: Union[int, float, SecureObjectType],
+        a: Union[float, SecureObjectType],
         x: Sequence[SecureObjectType],
     ) -> List[SecureObjectType]: ...
     def schur_prod(
@@ -146,9 +204,7 @@ class Runtime:
 
 class Party:
     __slots__ = "pid", "host", "port", "protocol"
-    def __init__(
-        self, pid: int, host: Optional[str] = None, port: Optional[str] = None
-    ):
+    def __init__(self, pid: int, host: Optional[str] = ..., port: Optional[int] = ...):
         """Initialize a party with given party identity pid."""
         self.pid = pid
         self.host = host
