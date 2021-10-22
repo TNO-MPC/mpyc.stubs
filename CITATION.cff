@@ -18,6 +18,6 @@ contact:
 repository-code: https://github.com/TNO-MPC/mpyc.stubs
 repository-artifact: https://pypi.org/project/tno.mpc.mpyc.stubs
 title: TNO MPC Lab - MPyC - Stubs
-version: v0.4.1
+version: v0.4.2
 date-released: 2021-10-22
 
