@@ -2,4 +2,4 @@
 Partial stub library for MPyC.
 """
 
-__version__ = "0.4.2"
+__version__ = "0.7.1"

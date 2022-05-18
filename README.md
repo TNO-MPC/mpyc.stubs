@@ -6,7 +6,8 @@ The package tno.mpc.mpyc.stubs is part of the TNO Python Toolbox.
 
 This package contains stubs to use for type hinting [MPyC](https://github.com/lschoe/mpyc).
 
-*Limitations in (end-)use: the content of this software package may solely be used for applications that comply with international export control laws.*
+*Limitations in (end-)use: the content of this software package may solely be used for applications that comply with international export control laws.*  
+*This implementation of cryptographic software has not been audited. Use at your own risk.*
 
 ## Install
 

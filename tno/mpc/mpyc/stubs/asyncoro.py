@@ -53,7 +53,7 @@ def mpc_coro_ignore(
     return mpc_coro(func, apply_program_counter_wrapper=False, ignore_type_hints=True)
 
 
-def mpc_coro(
+def mpc_coro(  # noqa: C901
     func: Callable[..., Coroutine[SecureElement, None, SecureElement]],
     apply_program_counter_wrapper: bool = True,
     ignore_type_hints: bool = False,

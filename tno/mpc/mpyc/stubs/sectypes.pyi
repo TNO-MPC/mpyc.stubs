@@ -1,4 +1,4 @@
-from typing import Any, Callable, ClassVar, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, ClassVar, List, Optional, Tuple, Type, TypeVar, Union
 
 FieldTypePlaceholder = Any
 T = TypeVar("T", bound="SecureObject")
@@ -96,16 +96,16 @@ def SecFld(
     ext_deg: Optional[int] = ...,
     min_order: Optional[int] = ...,
     signed: bool = ...,
-) -> SecureFiniteField: ...
+) -> Type[SecureFiniteField]: ...
 def SecInt(
     l: Optional[int] = ..., p: Optional[int] = ..., n: int = ...
-) -> SecureInteger: ...
+) -> Type[SecureInteger]: ...
 def SecFxp(
     l: Optional[int] = ...,
     f: Optional[int] = ...,
     p: Optional[int] = ...,
     n: int = ...,
-) -> SecureFixedPoint: ...
+) -> Type[SecureFixedPoint]: ...
 
 class SecureFloat(SecureNumber):
     __slots__ = ()

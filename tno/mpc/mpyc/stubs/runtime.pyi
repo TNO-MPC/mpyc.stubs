@@ -29,11 +29,15 @@ class Runtime:
         self.parties = tuple(parties)
         self.options = options
         self.threshold: int
-    coroutine: staticmethod
-    returnType: staticmethod
-    SecFld: staticmethod = staticmethod(sectypes.SecFld)
-    SecInt: staticmethod = staticmethod(sectypes.SecInt)
-    SecFxp: staticmethod = staticmethod(sectypes.SecFxp)
+    coroutine: staticmethod[Callable[..., Any]]
+    returnType: staticmethod[Awaitable[Any]]
+    SecFld: staticmethod[Type[sectypes.SecureFiniteField]] = staticmethod(
+        sectypes.SecFld
+    )
+    SecInt: staticmethod[Type[sectypes.SecureInteger]] = staticmethod(sectypes.SecInt)
+    SecFxp: staticmethod[Type[sectypes.SecureFixedPoint]] = staticmethod(
+        sectypes.SecFxp
+    )
 
     # Some of the functions below are actually async functions. However, MPyC
     # does not return Awaitables from these functions but rather SecureObjects
@@ -152,6 +156,9 @@ class Runtime:
     def sub(
         self, a: SecureObjectType, b: Union[SecureObjectType, float]
     ) -> SecureObjectType: ...
+    def add(
+        self, a: SecureObjectType, b: Union[SecureObjectType, float]
+    ) -> SecureObjectType: ...
     def gather(self, *obj: object) -> Any: ...
     def lt(
         self, a: SecureObjectType, b: Union[SecureObjectType, float]
@@ -162,7 +169,7 @@ class Runtime:
     def ge(
         self, a: SecureObjectType, b: Union[SecureObjectType, float]
     ) -> SecureObjectType: ...
-    def abs(self, a: SecureObjectType) -> SecureObjectType: ...
+    def abs(self, a: SecureObjectType, l: Optional[int] = ...) -> SecureObjectType: ...
     def sgn(
         self, a: SecureObjectType, l: int = ..., LT: bool = ..., EQ: bool = ...
     ) -> SecureObjectType: ...
@@ -194,12 +201,25 @@ class Runtime:
         a: Union[float, SecureObjectType],
         x: Sequence[SecureObjectType],
     ) -> List[SecureObjectType]: ...
+    def mul(self, a: SecureObjectType, b: SecureObjectType) -> SecureObjectType: ...
     def schur_prod(
         self, x: Sequence[SecureObjectType], y: Sequence[SecureObjectType]
     ) -> List[SecureObjectType]: ...
     def run(
         self: Runtime, f: Coroutine[Any, None, TypePlaceholder]
     ) -> TypePlaceholder: ...
+    def sorted(
+        self,
+        x: Sequence[SecureObjectType],
+        key: Optional[Callable[[Any], Any]] = ...,
+        reverse: bool = ...,
+    ) -> List[SecureObjectType]: ...
+    def matrix_sub(
+        self,
+        A: Sequence[Sequence[SecureObjectType]],
+        B: Sequence[Sequence[SecureObjectType]],
+        tr: bool = ...,
+    ) -> List[List[SecureObjectType]]: ...
     async def start(self) -> None: ...
 
 class Party:
