@@ -2,22 +2,21 @@ cff-version: 1.2.0
 license: Apache-2.0
 message: If you use this software, please cite it using these metadata.
 authors:
-      - name: TNO MPC Lab
-        city: The Hague
-        country: NL
-        email: mpclab@tno.nl
-        website: https://mpc.tno.nl
+  - name: TNO PET Lab
+    city: The Hague
+    country: NL
+    email: petlab@tno.nl
+    website: https://pet.tno.nl
 type: software
-url: https://mpc.tno.nl
+url: https://pet.tno.nl
 contact:
-      - name: TNO MPC Lab
-        city: The Hague
-        country: NL
-        email: mpclab@tno.nl
-        website: https://mpc.tno.nl
+  - name: TNO PET Lab
+    city: The Hague
+    country: NL
+    email: petlab@tno.nl
+    website: https://pet.tno.nl
 repository-code: https://github.com/TNO-MPC/mpyc.stubs
 repository-artifact: https://pypi.org/project/tno.mpc.mpyc.stubs
-title: TNO MPC Lab - MPyC - Stubs
-version: v0.7.1
-date-released: 2022-05-18
-
+title: TNO PET Lab - secure Multi-Party Computation (MPC) - MPyC - Stubs
+version: 2.6.2
+date-released: 2024-10-16
