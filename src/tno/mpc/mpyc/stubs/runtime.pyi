@@ -3,31 +3,26 @@ from __future__ import annotations
 import sys
 from argparse import Namespace
 from asyncio import AbstractEventLoop
+from collections.abc import Awaitable, Coroutine, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from types import TracebackType
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Coroutine,
-    Iterable,
-    Iterator,
-    List,
-    Literal,
-    Sequence,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Callable, Literal, TypeVar, Union, overload
 
 from mpyc import asyncoro, sectypes
-from mpyc.finfields import PrimeFieldElement
+from mpyc.finfields import FiniteFieldArray, PrimeFieldElement
 from mpyc.sectypes import (
     SecureFiniteField,
+    SecureFiniteFieldArray,
     SecureFixedPoint,
+    SecureFixedPointArray,
     SecureInteger,
+    SecureIntegerArray,
     SecureObject,
 )
+
+if TYPE_CHECKING:
+    import numpy as np
+    from numpy.typing import NDArray
 
 from tno.mpc.mpyc.stubs._sectypes import BaseSecureFloat
 
@@ -40,7 +35,8 @@ TypePlaceholder = TypeVar("TypePlaceholder")
 SecureObjectT = TypeVar("SecureObjectT", bound=SecureObject)
 SecureIntT = TypeVar("SecureIntT", bound=SecureInteger)
 SecureFxpT = TypeVar("SecureFxpT", bound=SecureFixedPoint)
-PossibleList = Union[TypePlaceholder, List[TypePlaceholder]]
+SecureFltT = TypeVar("SecureFltT", bound=BaseSecureFloat)
+PossibleList = Union[TypePlaceholder, list[TypePlaceholder]]
 
 class Runtime:
     def __init__(self, pid: int, parties: Iterable[Party], options: Namespace) -> None:
@@ -94,13 +90,13 @@ class Runtime:
     @overload
     def input(
         self,
-        x: Sequence[SecureObjectT],
+        x: list[SecureObjectT],
         senders: int,
     ) -> list[SecureObjectT]: ...
     @overload
     def input(
         self,
-        x: Sequence[SecureObjectT],
+        x: list[SecureObjectT],
         senders: Sequence[int] | None = ...,
     ) -> list[list[SecureObjectT]]: ...
     @overload
@@ -158,7 +154,7 @@ class Runtime:
         obj: PrimeFieldElement | SecureFiniteField,
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> PrimeFieldElement: ...
     @overload
     async def output(
@@ -183,7 +179,7 @@ class Runtime:
         obj: SecureInteger,
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> int | PrimeFieldElement: ...
     @overload
     async def output(
@@ -199,7 +195,7 @@ class Runtime:
         obj: SecureFixedPoint,
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> float | PrimeFieldElement: ...
     @overload
     async def output(
@@ -207,7 +203,7 @@ class Runtime:
         obj: BaseSecureFloat,
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> float: ...
 
     # lists section
@@ -217,7 +213,7 @@ class Runtime:
         obj: list[PrimeFieldElement] | list[SecureFiniteField],
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> list[PrimeFieldElement]: ...
     @overload
     async def output(
@@ -242,7 +238,7 @@ class Runtime:
         obj: list[SecureInteger],
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> list[int] | list[PrimeFieldElement]: ...
     @overload
     async def output(
@@ -258,16 +254,50 @@ class Runtime:
         obj: list[SecureFixedPoint],
         receivers: None | int | list[int],
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> list[float] | list[PrimeFieldElement]: ...
     @overload
     async def output(
         self,
-        obj: Sequence[BaseSecureFloat],
+        obj: list[SecureFltT],
         receivers: None | int | list[int] = ...,
         threshold: None | int = ...,
-        raw: bool = ...,
+        raw: bool = False,
     ) -> list[float]: ...
+
+    # numpy section
+    @overload
+    async def output(
+        self,
+        obj: SecureFiniteFieldArray,
+        receivers: None | int | list[int] = ...,
+        threshold: None | int = ...,
+        raw: bool = False,
+    ) -> FiniteFieldArray: ...
+    @overload
+    async def output(
+        self,
+        obj: SecureIntegerArray | SecureFixedPointArray,
+        receivers: None | int | list[int] = ...,
+        threshold: None | int = ...,
+        raw: Literal[True] = ...,
+    ) -> FiniteFieldArray: ...
+    @overload
+    async def output(
+        self,
+        obj: SecureIntegerArray | SecureFixedPointArray,
+        receivers: None | int | list[int] = ...,
+        threshold: None | int = ...,
+        raw: Literal[False] = ...,
+    ) -> NDArray[np.object_]: ...
+    @overload
+    async def output(
+        self,
+        obj: SecureIntegerArray | SecureFixedPointArray,
+        receivers: None | int | list[int] = ...,
+        threshold: None | int = ...,
+        raw: bool = False,
+    ) -> NDArray[np.object_] | FiniteFieldArray: ...
 
     # endregion
 
@@ -283,11 +313,11 @@ class Runtime:
     def _reshare(self, x: PrimeFieldElement) -> Awaitable[PrimeFieldElement]: ...
     @overload
     def convert(
-        self, x: Sequence[SecureObjectT], ttype: type[TypePlaceholder]
+        self, x: list[SecureObjectT], t_type: type[TypePlaceholder]
     ) -> list[TypePlaceholder]: ...
     @overload
     def convert(
-        self, x: SecureObjectT, ttype: type[TypePlaceholder]
+        self, x: SecureObjectT, t_type: type[TypePlaceholder]
     ) -> TypePlaceholder: ...
     @overload
     def trunc(
@@ -477,24 +507,24 @@ class Runtime:
     ) -> Awaitable[PrimeFieldElement]: ...
     def all(self, x: Sequence[SecureObjectT]) -> SecureObjectT: ...
     def vector_add(
-        self, x: Sequence[SecureObjectT], y: Sequence[SecureObjectT]
+        self, x: list[SecureObjectT], y: list[SecureObjectT]
     ) -> list[SecureObjectT]: ...
     def vector_sub(
-        self, x: Sequence[SecureObjectT], y: Sequence[SecureObjectT]
+        self, x: list[SecureObjectT], y: list[SecureObjectT]
     ) -> list[SecureObjectT]: ...
     def scalar_mul(
         self,
         a: float | SecureObjectT,
-        x: Sequence[SecureObjectT],
+        x: list[SecureObjectT],
     ) -> list[SecureObjectT]: ...
     def mul(self, a: SecureObjectT, b: SecureObjectT) -> SecureObjectT: ...
     @overload
     def schur_prod(
-        self, x: Sequence[SecureObjectT], y: Sequence[SecureObjectT]
+        self, x: list[SecureObjectT], y: list[SecureObjectT]
     ) -> list[SecureObjectT]: ...
     @overload
     def schur_prod(
-        self, x: Sequence[PrimeFieldElement], y: Sequence[PrimeFieldElement]
+        self, x: list[PrimeFieldElement], y: list[PrimeFieldElement]
     ) -> Awaitable[list[PrimeFieldElement]]: ...
     def run(self, f: Coroutine[Any, None, TypePlaceholder]) -> TypePlaceholder: ...
     @overload
@@ -513,10 +543,16 @@ class Runtime:
         ) = ...,
         reverse: bool = ...,
     ) -> list[list[SecureObjectT]]: ...
+    def matrix_add(
+        self,
+        A: list[list[SecureObjectT]],
+        B: list[list[SecureObjectT]],
+        tr: bool = ...,
+    ) -> list[list[SecureObjectT]]: ...
     def matrix_sub(
         self,
-        A: Sequence[Sequence[SecureObjectT]],
-        B: Sequence[Sequence[SecureObjectT]],
+        A: list[list[SecureObjectT]],
+        B: list[list[SecureObjectT]],
         tr: bool = ...,
     ) -> list[list[SecureObjectT]]: ...
     async def start(self) -> None: ...

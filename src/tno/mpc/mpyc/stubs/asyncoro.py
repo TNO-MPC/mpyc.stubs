@@ -6,7 +6,8 @@ A few alterations have been made to ensure that type hinting can be applied prop
 from __future__ import annotations
 
 import sys
-from typing import Any, Callable, Coroutine, TypeVar, no_type_check
+from collections.abc import Coroutine
+from typing import Any, Callable, TypeVar, no_type_check
 
 import mpyc.runtime  # noqa # required, otherwise asyncoro.runtime might be None (set by mpyc.runtime upon module loading) and errors arise
 from mpyc import asyncoro as mpyc_asyncoro
@@ -23,7 +24,7 @@ P = ParamSpec("P")
 
 
 def mpc_coro_ignore(
-    func: Callable[P, Coroutine[Any, None, SecureElement]]
+    func: Callable[P, Coroutine[Any, None, SecureElement]],
 ) -> Callable[P, SecureElement]:
     """
     A wrapper for an MPC coroutine that ensures that the behaviour of the code is unaffected by

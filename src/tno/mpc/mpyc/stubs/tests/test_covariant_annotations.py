@@ -64,6 +64,9 @@ async def covariant_annotations() -> None:
         # mpc.matrix_prod
         await mpc.output(mpc.matrix_prod((secint_seq,), (secint_seq,))[0][0])
 
+        # mpc.all
+        await mpc.output(mpc.all(secint_seq))
+
 
 def test_covariant_annotations() -> None:
     """

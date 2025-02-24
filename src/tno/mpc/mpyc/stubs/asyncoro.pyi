@@ -2,23 +2,12 @@ from __future__ import annotations
 
 import sys
 from asyncio import Future, Task
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Coroutine,
-    Generator,
-    Generic,
-    List,
-    Literal,
-    TypeVar,
-    Union,
-    overload,
-)
+from collections.abc import Awaitable, Coroutine, Generator
+from typing import Any, Callable, Generic, Literal, TypeVar, Union, overload
 
 from mpyc.finfields import PrimeFieldElement
 from mpyc.runtime import Runtime
-from mpyc.sectypes import SecureObject
+from mpyc.sectypes import SecureObject as SecureObject
 
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
@@ -26,7 +15,7 @@ else:
     from typing import ParamSpec
 
 InnerT = TypeVar("InnerT")
-ReturnType = Union[InnerT, List[InnerT], List[List[InnerT]]]
+ReturnType = Union[InnerT, list[InnerT], list[list[InnerT]]]
 SomeT = TypeVar("SomeT")
 AnotherT = TypeVar("AnotherT")
 SecureObjectT = TypeVar("SecureObjectT", bound=SecureObject)
@@ -82,7 +71,7 @@ def mpc_coro(
     pc: bool = ...,
 ) -> Callable[P, InnerT]: ...
 def mpc_coro_ignore(
-    func: Callable[P, Coroutine[Any, None, InnerT]]
+    func: Callable[P, Coroutine[Any, None, InnerT]],
 ) -> Callable[P, InnerT]: ...
 
 class _Awaitable(Generic[SomeT]):

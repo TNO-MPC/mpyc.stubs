@@ -9,4 +9,4 @@ from ._sectypes import BaseSecureFloat as BaseSecureFloat
 from .asyncoro import mpc_coro_ignore as mpc_coro_ignore
 from .asyncoro import returnType as returnType
 
-__version__ = "2.6.2"
+__version__ = "2.11.0"
